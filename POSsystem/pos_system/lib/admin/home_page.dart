@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
 import '../db_helper.dart';
 import 'create_product.dart';
 
@@ -28,8 +27,8 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void addProduct(Map<String, String> product, File? image) async {
-    await DbHelper().insertProduct(product, image);
+  void addProduct(Map<String, String> product) async {
+    await DbHelper().insertProduct(product);
     _loadProducts();
   }
 
@@ -58,17 +57,18 @@ class _MyHomePageState extends State<MyHomePage> {
                 onPressed: () async {
                   final result = await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const CreateProductPage()),
+                    MaterialPageRoute(
+                        builder: (context) => const CreateProductPage()),
                   );
                   if (result != null) {
-                    final data = result as Map<String, dynamic>;
-                    addProduct(data['product'] as Map<String, String>, data['image'] as File?);
+                    addProduct(result as Map<String, String>);
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 0, 0, 0)
-                ),
-                child: const Text('Add Product', style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
+                    backgroundColor: const Color.fromARGB(255, 0, 0, 0)),
+                child: const Text('Add Product',
+                    style:
+                        TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
               ),
             ),
           ),
