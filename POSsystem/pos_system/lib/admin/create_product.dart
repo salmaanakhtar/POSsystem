@@ -1,3 +1,4 @@
+// filepath: /c:/Users/akhta/Documents/GitHub/POSsystem/POSsystem/pos_system/lib/admin/create_product.dart
 import 'package:flutter/material.dart';
 
 class CreateProductPage extends StatefulWidget {

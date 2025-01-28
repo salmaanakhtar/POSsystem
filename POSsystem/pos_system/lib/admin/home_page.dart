@@ -1,4 +1,6 @@
+// filepath: /c:/Users/akhta/Documents/GitHub/POSsystem/POSsystem/pos_system/lib/admin/home_page.dart
 import 'package:flutter/material.dart';
+import '../db_helper.dart';
 import 'create_product.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -11,24 +13,34 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<Map<String, String>> products = [];
+  List<Map<String, dynamic>> products = [];
 
-  void addProduct(Map<String, String> product) {
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    var data = await DbHelper().getProducts();
     setState(() {
-      products.add(product);
+      products = data;
     });
   }
 
-  void editProduct(int index, Map<String, String> product) {
-    setState(() {
-      products[index] = product;
-    });
+  void addProduct(Map<String, String> product) async {
+    await DbHelper().insertProduct(product);
+    _loadProducts();
   }
 
-  void deleteProduct(int index) {
-    setState(() {
-      products.removeAt(index);
-    });
+  void editProduct(int index, Map<String, String> product) async {
+    await DbHelper().updateProduct(products[index]['_id'].toString(), product);
+    _loadProducts();
+  }
+
+  void deleteProduct(int index) async {
+    await DbHelper().deleteProduct(products[index]['_id'].toString());
+    _loadProducts();
   }
 
   @override
@@ -70,47 +82,15 @@ class _MyHomePageState extends State<MyHomePage> {
                     DataColumn(label: Text('Price Local')),
                     DataColumn(label: Text('Price Away')),
                     DataColumn(label: Text('Description')),
-                    DataColumn(label: Text('Edit')),
-                    DataColumn(label: Text('Delete')),
                   ],
-                  rows: products
-                      .asMap()
-                      .entries
-                      .map(
-                        (entry) => DataRow(
-                          cells: [
-                            DataCell(Text(entry.value['name']!)),
-                            DataCell(Text(entry.value['priceLocal']!)),
-                            DataCell(Text(entry.value['priceAway']!)),
-                            DataCell(Text(entry.value['description']!)),
-                            DataCell(
-                              IconButton(
-                                icon: const Icon(Icons.edit),
-                                onPressed: () async {
-                                  final result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => CreateProductPage(product: entry.value),
-                                    ),
-                                  );
-                                  if (result != null) {
-                                    editProduct(entry.key, result);
-                                  }
-                                },
-                              ),
-                            ),
-                            DataCell(
-                              IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () {
-                                  deleteProduct(entry.key);
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                      .toList(),
+                  rows: products.map((product) {
+                    return DataRow(cells: [
+                      DataCell(Text(product['name'])),
+                      DataCell(Text(product['priceLocal'])),
+                      DataCell(Text(product['priceAway'])),
+                      DataCell(Text(product['description'])),
+                    ]);
+                  }).toList(),
                 ),
               ),
             ),
