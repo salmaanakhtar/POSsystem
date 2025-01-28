@@ -1,5 +1,5 @@
-// filepath: /c:/Users/akhta/Documents/GitHub/POSsystem/POSsystem/pos_system/lib/admin/home_page.dart
 import 'package:flutter/material.dart';
+import 'dart:io';
 import '../db_helper.dart';
 import 'create_product.dart';
 
@@ -28,8 +28,8 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void addProduct(Map<String, String> product) async {
-    await DbHelper().insertProduct(product);
+  void addProduct(Map<String, String> product, File? image) async {
+    await DbHelper().insertProduct(product, image);
     _loadProducts();
   }
 
@@ -61,7 +61,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     MaterialPageRoute(builder: (context) => const CreateProductPage()),
                   );
                   if (result != null) {
-                    addProduct(result);
+                    final data = result as Map<String, dynamic>;
+                    addProduct(data['product'] as Map<String, String>, data['image'] as File?);
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -79,15 +80,17 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: DataTable(
                   columns: const [
                     DataColumn(label: Text('Name')),
-                    DataColumn(label: Text('Price Local')),
-                    DataColumn(label: Text('Price Away')),
+                    DataColumn(label: Text('Price 1')),
+                    DataColumn(label: Text('Price 2')),
+                    DataColumn(label: Text('Price 3')),
                     DataColumn(label: Text('Description')),
                   ],
                   rows: products.map((product) {
                     return DataRow(cells: [
                       DataCell(Text(product['name'])),
-                      DataCell(Text(product['priceLocal'])),
-                      DataCell(Text(product['priceAway'])),
+                      DataCell(Text(product['price1'])),
+                      DataCell(Text(product['price2'])),
+                      DataCell(Text(product['price3'])),
                       DataCell(Text(product['description'])),
                     ]);
                   }).toList(),

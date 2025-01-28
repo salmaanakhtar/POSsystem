@@ -1,4 +1,3 @@
-// filepath: /c:/Users/akhta/Documents/GitHub/POSsystem/POSsystem/pos_system/lib/admin/create_product.dart
 import 'package:flutter/material.dart';
 
 class CreateProductPage extends StatefulWidget {
@@ -12,8 +11,9 @@ class CreateProductPage extends StatefulWidget {
 
 class _CreateProductPageState extends State<CreateProductPage> {
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _priceLocalController = TextEditingController();
-  final TextEditingController _priceAwayController = TextEditingController();
+  final TextEditingController _price1Controller = TextEditingController();
+  final TextEditingController _price2Controller = TextEditingController();
+  final TextEditingController _price3Controller = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
   @override
@@ -21,8 +21,9 @@ class _CreateProductPageState extends State<CreateProductPage> {
     super.initState();
     if (widget.product != null) {
       _nameController.text = widget.product!['name']!;
-      _priceLocalController.text = widget.product!['priceLocal']!;
-      _priceAwayController.text = widget.product!['priceAway']!;
+      _price1Controller.text = widget.product!['price1']!;
+      _price2Controller.text = widget.product!['price2']!;
+      _price3Controller.text = widget.product!['price3']!;
       _descriptionController.text = widget.product!['description']!;
     }
   }
@@ -30,8 +31,9 @@ class _CreateProductPageState extends State<CreateProductPage> {
   void _submit() {
     final product = {
       'name': _nameController.text,
-      'priceLocal': _priceLocalController.text,
-      'priceAway': _priceAwayController.text,
+      'price1': _price1Controller.text,
+      'price2': _price2Controller.text,
+      'price3': _price3Controller.text,
       'description': _descriptionController.text,
     };
     Navigator.pop(context, product);
@@ -50,13 +52,18 @@ class _CreateProductPageState extends State<CreateProductPage> {
               decoration: const InputDecoration(labelText: 'Product Name'),
             ),
             TextField(
-              controller: _priceLocalController,
-              decoration: const InputDecoration(labelText: 'Local Price'),
+              controller: _price1Controller,
+              decoration: const InputDecoration(labelText: 'Price 1'),
               keyboardType: TextInputType.number,
             ),
             TextField(
-              controller: _priceAwayController,
-              decoration: const InputDecoration(labelText: 'Away Price'),
+              controller: _price2Controller,
+              decoration: const InputDecoration(labelText: 'Price 2'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _price3Controller,
+              decoration: const InputDecoration(labelText: 'Price 3'),
               keyboardType: TextInputType.number,
             ),
             TextField(
