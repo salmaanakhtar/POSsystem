@@ -42,6 +42,40 @@ class _MyHomePageState extends State<MyHomePage> {
     _loadProducts();
   }
 
+  Future<void> _confirmDelete(int index) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Delete'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: const <Widget>[
+                Text('Are you sure you want to delete this product?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Delete'),
+              onPressed: () {
+                deleteProduct(index);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,7 +156,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           IconButton(
                             icon: const Icon(Icons.delete),
                             onPressed: () {
-                              deleteProduct(index);
+                              _confirmDelete(index);
                             },
                           ),
                         ],

@@ -14,6 +14,7 @@ class CreateProductPage extends StatefulWidget {
 }
 
 class _CreateProductPageState extends State<CreateProductPage> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _price1Controller = TextEditingController();
   final TextEditingController _price2Controller = TextEditingController();
@@ -80,47 +81,97 @@ class _CreateProductPageState extends State<CreateProductPage> {
       appBar: AppBar(title: const Text('Create Product')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: <Widget>[
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Product Name'),
-            ),
-            TextField(
-              controller: _price1Controller,
-              decoration: const InputDecoration(labelText: 'Price 1'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _price2Controller,
-              decoration: const InputDecoration(labelText: 'Price 2'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _price3Controller,
-              decoration: const InputDecoration(labelText: 'Price 3'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(labelText: 'Product Description'),
-            ),
-            const SizedBox(height: 20),
-            if (widget.product == null) ...[
-              ElevatedButton(
-                onPressed: _pickImage,
-                child: const Text('Pick Image'),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: <Widget>[
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Product Name'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a product name';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _price1Controller,
+                decoration: const InputDecoration(labelText: 'Price 1'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a price';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Please enter a valid number';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _price2Controller,
+                decoration: const InputDecoration(labelText: 'Price 2'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a price';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Please enter a valid number';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _price3Controller,
+                decoration: const InputDecoration(labelText: 'Price 3'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a price';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Please enter a valid number';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(labelText: 'Product Description'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a product description';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 20),
+              if (widget.product == null) ...[
+                ElevatedButton(
+                  onPressed: _pickImage,
+                  child: const Text('Pick Image'),
+                ),
+                const SizedBox(height: 20),
+              ],
+              ElevatedButton(
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    if (_image == null && widget.product == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please pick an image')),
+                      );
+                      return;
+                    }
+                    final product = await _submit();
+                    Navigator.pop(context, product);
+                  }
+                },
+                child: const Text('Submit'),
+              ),
             ],
-            ElevatedButton(
-              onPressed: () async {
-                final product = await _submit();
-                Navigator.pop(context, product);
-              },
-              child: const Text('Submit'),
-            ),
-          ],
+          ),
         ),
       ),
     );
