@@ -69,8 +69,11 @@ app.put('/products/:id', async (req, res) => {
 });
 
 app.delete('/products/:id', async (req, res) => {
-  await Product.findByIdAndDelete(req.params.id);
-  res.send({ message: 'Product deleted' });
+  const product = await Product.findByIdAndDelete(req.params.id);
+  if (product && product.imageId) {
+    await Image.findByIdAndDelete(product.imageId);
+  }
+  res.send({ message: 'Product and associated image deleted' });
 });
 
 app.listen(3000, () => {

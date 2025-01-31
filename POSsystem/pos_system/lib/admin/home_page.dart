@@ -84,14 +84,49 @@ class _MyHomePageState extends State<MyHomePage> {
                     DataColumn(label: Text('Price 2')),
                     DataColumn(label: Text('Price 3')),
                     DataColumn(label: Text('Description')),
+                    DataColumn(label: Text('Actions')),
                   ],
                   rows: products.map((product) {
+                    final index = products.indexOf(product);
                     return DataRow(cells: [
                       DataCell(Text(product['name'])),
                       DataCell(Text(product['price1'])),
                       DataCell(Text(product['price2'])),
                       DataCell(Text(product['price3'])),
                       DataCell(Text(product['description'])),
+                      DataCell(Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit),
+                            onPressed: () async {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CreateProductPage(
+                                    product: {
+                                      'name': product['name'],
+                                      'price1': product['price1'],
+                                      'price2': product['price2'],
+                                      'price3': product['price3'],
+                                      'description': product['description'],
+                                      'imageId': product['imageId'],
+                                    },
+                                  ),
+                                ),
+                              );
+                              if (result != null) {
+                                editProduct(index, result as Map<String, String>);
+                              }
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () {
+                              deleteProduct(index);
+                            },
+                          ),
+                        ],
+                      )),
                     ]);
                   }).toList(),
                 ),

@@ -68,7 +68,7 @@ class _CreateProductPageState extends State<CreateProductPage> {
       'price2': _price2Controller.text,
       'price3': _price3Controller.text,
       'description': _descriptionController.text,
-      'imageId': imageId ?? '',
+      'imageId': widget.product?['imageId'] ?? imageId ?? '',
     };
 
     return product;
@@ -106,11 +106,13 @@ class _CreateProductPageState extends State<CreateProductPage> {
               decoration: const InputDecoration(labelText: 'Product Description'),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _pickImage,
-              child: const Text('Pick Image'),
-            ),
-            const SizedBox(height: 20),
+            if (widget.product == null) ...[
+              ElevatedButton(
+                onPressed: _pickImage,
+                child: const Text('Pick Image'),
+              ),
+              const SizedBox(height: 20),
+            ],
             ElevatedButton(
               onPressed: () async {
                 final product = await _submit();
