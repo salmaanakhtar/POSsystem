@@ -2,6 +2,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 app.use(bodyParser.json());
@@ -16,9 +19,38 @@ const productSchema = new mongoose.Schema({
   price2: String,
   price3: String,
   description: String,
+  imageId: String,
 });
 
 const Product = mongoose.model('Product', productSchema);
+
+const imageSchema = new mongoose.Schema({
+  data: Buffer,
+  contentType: String,
+});
+
+const Image = mongoose.model('Image', imageSchema);
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+app.post('/upload', upload.single('image'), async (req, res) => {
+  const newImage = new Image({
+    data: req.file.buffer,
+    contentType: req.file.mimetype,
+  });
+  await newImage.save();
+  res.send({ id: newImage._id });
+});
+
+app.get('/image/:id', async (req, res) => {
+  const image = await Image.findById(req.params.id);
+  if (!image) {
+    return res.status(404).send('Image not found');
+  }
+  res.set('Content-Type', image.contentType);
+  res.send(image.data);
+});
 
 app.post('/products', async (req, res) => {
   const product = new Product(req.body);
