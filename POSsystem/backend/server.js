@@ -31,6 +31,14 @@ const imageSchema = new mongoose.Schema({
 
 const Image = mongoose.model('Image', imageSchema);
 
+const cartSchema = new mongoose.Schema({
+  productId: String,
+  quantity: Number,
+  price: String,
+});
+
+const Cart = mongoose.model('Cart', cartSchema);
+
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
@@ -74,6 +82,27 @@ app.delete('/products/:id', async (req, res) => {
     await Image.findByIdAndDelete(product.imageId);
   }
   res.send({ message: 'Product and associated image deleted' });
+});
+
+app.post('/cart', async (req, res) => {
+  const cartItem = new Cart(req.body);
+  await cartItem.save();
+  res.send(cartItem);
+});
+
+app.get('/cart', async (req, res) => {
+  const cartItems = await Cart.find();
+  res.send(cartItems);
+});
+
+app.put('/cart/:id', async (req, res) => {
+  const cartItem = await Cart.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  res.send(cartItem);
+});
+
+app.delete('/cart/:id', async (req, res) => {
+  await Cart.findByIdAndDelete(req.params.id);
+  res.send({ message: 'Cart item deleted' });
 });
 
 app.listen(3000, () => {

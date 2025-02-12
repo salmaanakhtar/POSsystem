@@ -16,7 +16,7 @@ class _LoginPageState extends State<LoginPage> {
     final password = _passwordController.text;
 
     if (username == 'admin' && password == 'admin') {
-      Navigator.pushReplacementNamed(context, '/admin/home');
+      Navigator.pushReplacementNamed(context, '/home');
     } else if (username == 'customer' && password == 'customer') {
       Navigator.pushReplacementNamed(context, '/customer/home');
     } else {

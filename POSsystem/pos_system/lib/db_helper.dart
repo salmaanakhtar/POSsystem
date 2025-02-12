@@ -1,4 +1,3 @@
-// filepath: /c:/Users/akhta/Documents/GitHub/POSsystem/POSsystem/pos_system/lib/db_helper.dart
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
