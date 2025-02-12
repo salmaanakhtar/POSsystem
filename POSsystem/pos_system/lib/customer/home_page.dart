@@ -16,6 +16,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
   List<Map<String, dynamic>> products = [];
   Map<int, String> selectedPrices = {};
   Map<int, int> quantities = {};
+  Map<String, Uint8List> imageCache = {};
 
   @override
   void initState() {
@@ -25,9 +26,25 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
 
   Future<void> _loadProducts() async {
     var data = await DbHelper().getProducts();
+    for (var product in data) {
+      _loadImage(product['imageId']);
+    }
     setState(() {
       products = data;
     });
+  }
+
+  Future<void> _loadImage(String imageId) async {
+    if (!imageCache.containsKey(imageId)) {
+      final response = await http.get(Uri.parse('https://possystembackend.vercel.app/image/$imageId'));
+      if (response.statusCode == 200) {
+        setState(() {
+          imageCache[imageId] = response.bodyBytes;
+        });
+      } else {
+        throw Exception('Failed to load image');
+      }
+    }
   }
 
   @override
@@ -58,7 +75,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                     itemBuilder: (context, index) {
                       final product = products[index];
                       return Card(
-                        color: Colors.black.withOpacity(0.7),
+                        color: Colors.white.withOpacity(0.1), // White translucent background
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.0),
                         ),
@@ -67,18 +84,9 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              FutureBuilder(
-                                future: _loadImage(product['imageId']),
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState == ConnectionState.waiting) {
-                                    return const Center(child: CircularProgressIndicator());
-                                  } else if (snapshot.hasError) {
-                                    return const Center(child: Text('Error loading image', style: TextStyle(color: Colors.white)));
-                                  } else {
-                                    return Image.memory(snapshot.data as Uint8List, width: 100, height: 100);
-                                  }
-                                },
-                              ),
+                              imageCache.containsKey(product['imageId'])
+                                  ? Image.memory(imageCache[product['imageId']]!, width: 240, height: 240) // Slightly bigger image
+                                  : const Center(child: CircularProgressIndicator()),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Column(
@@ -98,7 +106,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                               ),
                               const SizedBox(width: 10),
                               Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: <Widget>[
                                   DropdownButton<String>(
                                     value: selectedPrices[index],
@@ -147,6 +155,13 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                       },
                                     ),
                                   ),
+                                  const SizedBox(height: 10),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      // Add to cart logic here
+                                    },
+                                    child: const Text('Add to Cart'),
+                                  ),
                                 ],
                               ),
                             ],
@@ -159,14 +174,5 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
         ],
       ),
     );
-  }
-
-  Future<Uint8List> _loadImage(String imageId) async {
-    final response = await http.get(Uri.parse('https://possystembackend.vercel.app/image/$imageId'));
-    if (response.statusCode == 200) {
-      return response.bodyBytes;
-    } else {
-      throw Exception('Failed to load image');
-    }
   }
 }
