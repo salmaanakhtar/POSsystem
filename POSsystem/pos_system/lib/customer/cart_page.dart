@@ -104,7 +104,8 @@ class _CartPageState extends State<CartPage> {
                                     },
                                     controller: TextEditingController(
                                       text: widget.cartItems[index]['price']
-                                          .toString(),
+                                              ?.toString() ??
+                                          '0',
                                     ),
                                   ),
                                   const SizedBox(height: 5),

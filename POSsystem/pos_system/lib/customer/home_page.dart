@@ -76,7 +76,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
         'productId': product['_id'],
         'name': product['name'],
         'quantity': quantities[index]!,
-        'price': product['price'], // Only one price
+        'price': product['price'] ?? '0', // fallback to '0' if null
       };
       setState(() {
         cartItems.add(cartItem);
@@ -239,7 +239,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                           CrossAxisAlignment.end,
                                       children: <Widget>[
                                         Text(
-                                          'Price: ${product['price1']}',
+                                          'Price: ${product['price'] ?? 'N/A'}',
                                           style: const TextStyle(
                                               color: Colors.white,
                                               fontSize: 18,

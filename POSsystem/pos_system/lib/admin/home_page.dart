@@ -216,9 +216,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       builder: (context) => CreateProductPage(
                                         product: {
                                           'name': product['name'],
-                                          'price1': product['price1'],
-                                          'price2': product['price2'],
-                                          'price3': product['price3'],
+                                          'price': product['price'],
                                           'description': product['description'],
                                           'imageId': product['imageId'],
                                         },
