@@ -32,6 +32,12 @@ dependencies:
     sdk: flutter
   mongo_dart: ^0.7.0
   image_picker: ^0.8.4+4
+  intl: ^0.18.1
+  image_gallery_saver: ^2.0.3
+  share_plus: ^7.2.1
+  permission_handler: ^11.3.1
+  pdf: ^3.10.4
+  printing: ^5.12.0
 
 
 

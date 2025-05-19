@@ -17,6 +17,7 @@ class MyApp extends StatelessWidget {
       title: 'POS System',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+      
       ),
       home: const LoginPage(),
       routes: {

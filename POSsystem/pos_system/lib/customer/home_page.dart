@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'cart_page.dart';
 import '../db_helper.dart';
+import '../login_page.dart'; // Make sure this import is correct
 
 class CustomerHomePage extends StatefulWidget {
   const CustomerHomePage({super.key, required this.title});
@@ -42,7 +43,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
 
   Future<void> _loadImage(String imageId) async {
     if (!imageCache.containsKey(imageId)) {
-      final response = await http.get(Uri.parse('https://possystembackend.vercel.app/image/$imageId'));
+      final response = await http
+          .get(Uri.parse('https://possystembackend.vercel.app/image/$imageId'));
       if (response.statusCode == 200) {
         setState(() {
           imageCache[imageId] = response.bodyBytes;
@@ -57,8 +59,12 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
     setState(() {
       filteredProducts = products
           .where((product) =>
-              product['name'].toLowerCase().contains(searchController.text.toLowerCase()) ||
-              product['description'].toLowerCase().contains(searchController.text.toLowerCase()))
+              product['name']
+                  .toLowerCase()
+                  .contains(searchController.text.toLowerCase()) ||
+              product['description']
+                  .toLowerCase()
+                  .contains(searchController.text.toLowerCase()))
           .toList();
     });
   }
@@ -70,16 +76,16 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
         'productId': product['_id'],
         'name': product['name'],
         'quantity': quantities[index]!,
-        'price': selectedPrices[index]!,
-        'price1': product['price1'],
-        'price2': product['price2'],
-        'price3': product['price3'],
+        'price': product['price'], // Only one price
       };
       setState(() {
         cartItems.add(cartItem);
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Added to cart')),
+        SnackBar(
+          content: Text('Added to cart'),
+          backgroundColor: Color(0xFF2E8B57),
+        ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -102,11 +108,22 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
         backgroundColor: Colors.black,
         actions: [
           IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+                (route) => false,
+              );
+            },
+          ),
+          IconButton(
             icon: Icon(Icons.shopping_cart),
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => CartPage(cartItems: cartItems)),
+                MaterialPageRoute(
+                    builder: (context) => CartPage(cartItems: cartItems)),
               );
             },
           ),
@@ -153,7 +170,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                             final product = filteredProducts[index];
                             selectedPrices[index] ??= product['price1'];
                             return Card(
-                              color: Colors.white.withOpacity(0.1), // White translucent background
+                              color: Colors.white.withOpacity(0.1),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10.0),
                               ),
@@ -162,53 +179,71 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
-                                    imageCache.containsKey(product['imageId'])
-                                        ? Image.memory(imageCache[product['imageId']]!, width: 120, height: 120) // Slightly bigger image
-                                        : const Center(child: CircularProgressIndicator()),
+                                    GestureDetector(
+                                      onTap: () {
+                                        if (imageCache
+                                            .containsKey(product['imageId'])) {
+                                          showDialog(
+                                            context: context,
+                                            builder: (_) => Dialog(
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              child: InteractiveViewer(
+                                                child: Image.memory(
+                                                  imageCache[
+                                                      product['imageId']]!,
+                                                  fit: BoxFit.contain,
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      child: imageCache
+                                              .containsKey(product['imageId'])
+                                          ? Image.memory(
+                                              imageCache[product['imageId']]!,
+                                              width: 240,
+                                              height: 240,
+                                            )
+                                          : const Center(
+                                              child:
+                                                  CircularProgressIndicator()),
+                                    ),
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: <Widget>[
                                           Text(
                                             product['name'],
-                                            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                                            style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 40,
+                                                fontWeight: FontWeight.bold),
                                           ),
                                           const SizedBox(height: 5),
                                           Text(
                                             product['description'],
-                                            style: const TextStyle(color: Colors.white),
+                                            style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 20),
                                           ),
                                         ],
                                       ),
                                     ),
                                     const SizedBox(width: 10),
                                     Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
                                       children: <Widget>[
-                                        DropdownButton<String>(
-                                          value: selectedPrices[index],
-                                          hint: const Text('Select Price', style: TextStyle(color: Colors.white)),
-                                          dropdownColor: Colors.black,
-                                          items: [
-                                            DropdownMenuItem(
-                                              value: product['price1'],
-                                              child: Text('Price 1: ${product['price1']}', style: const TextStyle(color: Colors.white)),
-                                            ),
-                                            DropdownMenuItem(
-                                              value: product['price2'],
-                                              child: Text('Price 2: ${product['price2']}', style: const TextStyle(color: Colors.white)),
-                                            ),
-                                            DropdownMenuItem(
-                                              value: product['price3'],
-                                              child: Text('Price 3: ${product['price3']}', style: const TextStyle(color: Colors.white)),
-                                            ),
-                                          ],
-                                          onChanged: (value) {
-                                            setState(() {
-                                              selectedPrices[index] = value!;
-                                            });
-                                          },
+                                        Text(
+                                          'Price: ${product['price1']}',
+                                          style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold),
                                         ),
                                         const SizedBox(height: 10),
                                         SizedBox(
@@ -216,19 +251,24 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                           child: TextField(
                                             decoration: const InputDecoration(
                                               labelText: 'Quantity',
-                                              labelStyle: TextStyle(color: Colors.white),
+                                              labelStyle: TextStyle(
+                                                  color: Colors.white),
                                               enabledBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(color: Colors.white),
+                                                borderSide: BorderSide(
+                                                    color: Colors.white),
                                               ),
                                               focusedBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(color: Colors.white),
+                                                borderSide: BorderSide(
+                                                    color: Colors.white),
                                               ),
                                             ),
-                                            style: const TextStyle(color: Colors.white),
+                                            style: const TextStyle(
+                                                color: Colors.white),
                                             keyboardType: TextInputType.number,
                                             onChanged: (value) {
                                               setState(() {
-                                                quantities[index] = int.tryParse(value) ?? 0;
+                                                quantities[index] =
+                                                    int.tryParse(value) ?? 0;
                                               });
                                             },
                                           ),

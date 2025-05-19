@@ -15,9 +15,7 @@ mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const productSchema = new mongoose.Schema({
   name: String,
-  price1: String,
-  price2: String,
-  price3: String,
+  price: String, // Changed: single price field
   description: String,
   imageId: String,
 });

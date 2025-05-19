@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../db_helper.dart';
 import 'create_product.dart';
+import '../login_page.dart'; // Make sure this import is correct
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -62,24 +63,28 @@ class _MyHomePageState extends State<MyHomePage> {
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirm Delete', style: TextStyle(color: Colors.white)),
+          title: const Text('Confirm Delete',
+              style: TextStyle(color: Colors.white)),
           content: SingleChildScrollView(
             child: ListBody(
               children: const <Widget>[
-                Text('Are you sure you want to delete this product?', style: TextStyle(color: Colors.white)),
+                Text('Are you sure you want to delete this product?',
+                    style: TextStyle(color: Colors.white)),
               ],
             ),
           ),
           backgroundColor: Colors.black,
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel', style: TextStyle(color: Colors.white)),
+              child:
+                  const Text('Cancel', style: TextStyle(color: Colors.white)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Delete', style: TextStyle(color: Colors.white)),
+              child:
+                  const Text('Delete', style: TextStyle(color: Colors.white)),
               onPressed: () {
                 deleteProduct(index);
                 Navigator.of(context).pop();
@@ -95,8 +100,23 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title, style: const TextStyle(color: Colors.white,)),
+        title: Text(widget.title,
+            style: const TextStyle(
+              color: Colors.white,
+            )),
         backgroundColor: Colors.black,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+                (route) => false,
+              );
+            },
+          ),
+        ],
       ),
       body: Stack(
         fit: StackFit.expand,
@@ -148,10 +168,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 255, 255, 255)),
+                        backgroundColor:
+                            const Color.fromARGB(255, 255, 255, 255)),
                     child: const Text('Add Product',
-                        style:
-                            TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
+                        style: TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
                   ),
                 ),
               ),
@@ -162,25 +182,33 @@ class _MyHomePageState extends State<MyHomePage> {
                     scrollDirection: Axis.horizontal,
                     child: DataTable(
                       columns: const [
-                        DataColumn(label: Text('Name', style: TextStyle(color: Colors.white))),
-                        DataColumn(label: Text('Price 1', style: TextStyle(color: Colors.white))),
-                        DataColumn(label: Text('Price 2', style: TextStyle(color: Colors.white))),
-                        DataColumn(label: Text('Price 3', style: TextStyle(color: Colors.white))),
-                        DataColumn(label: Text('Description', style: TextStyle(color: Colors.white))),
-                        DataColumn(label: Text('Actions', style: TextStyle(color: Colors.white))),
+                        DataColumn(
+                            label: Text('Name',
+                                style: TextStyle(color: Colors.white))),
+                        DataColumn(
+                            label: Text('Price',
+                                style: TextStyle(color: Colors.white))),
+                        DataColumn(
+                            label: Text('Description',
+                                style: TextStyle(color: Colors.white))),
+                        DataColumn(
+                            label: Text('Actions',
+                                style: TextStyle(color: Colors.white))),
                       ],
                       rows: filteredProducts.map((product) {
                         final index = products.indexOf(product);
                         return DataRow(cells: [
-                          DataCell(Text(product['name'], style: const TextStyle(color: Colors.white))),
-                          DataCell(Text(product['price1'], style: const TextStyle(color: Colors.white))),
-                          DataCell(Text(product['price2'], style: const TextStyle(color: Colors.white))),
-                          DataCell(Text(product['price3'], style: const TextStyle(color: Colors.white))),
-                          DataCell(Text(product['description'], style: const TextStyle(color: Colors.white))),
+                          DataCell(Text(product['name'],
+                              style: const TextStyle(color: Colors.white))),
+                          DataCell(Text(product['price'],
+                              style: const TextStyle(color: Colors.white))),
+                          DataCell(Text(product['description'],
+                              style: const TextStyle(color: Colors.white))),
                           DataCell(Row(
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.edit, color: Colors.white),
+                                icon:
+                                    const Icon(Icons.edit, color: Colors.white),
                                 onPressed: () async {
                                   final result = await Navigator.push(
                                     context,
@@ -198,12 +226,14 @@ class _MyHomePageState extends State<MyHomePage> {
                                     ),
                                   );
                                   if (result != null) {
-                                    editProduct(index, result as Map<String, String>);
+                                    editProduct(
+                                        index, result as Map<String, String>);
                                   }
                                 },
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.white),
+                                icon: const Icon(Icons.delete,
+                                    color: Colors.white),
                                 onPressed: () {
                                   _confirmDelete(index);
                                 },

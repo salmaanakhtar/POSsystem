@@ -16,9 +16,7 @@ class CreateProductPage extends StatefulWidget {
 class _CreateProductPageState extends State<CreateProductPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _price1Controller = TextEditingController();
-  final TextEditingController _price2Controller = TextEditingController();
-  final TextEditingController _price3Controller = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   File? _image;
 
@@ -27,15 +25,14 @@ class _CreateProductPageState extends State<CreateProductPage> {
     super.initState();
     if (widget.product != null) {
       _nameController.text = widget.product!['name']!;
-      _price1Controller.text = widget.product!['price1']!;
-      _price2Controller.text = widget.product!['price2']!;
-      _price3Controller.text = widget.product!['price3']!;
+      _priceController.text = widget.product!['price']!;
       _descriptionController.text = widget.product!['description']!;
     }
   }
 
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _image = File(pickedFile.path);
@@ -44,7 +41,8 @@ class _CreateProductPageState extends State<CreateProductPage> {
   }
 
   Future<String?> _uploadImage(File image) async {
-    final request = http.MultipartRequest('POST', Uri.parse('https://possystembackend.vercel.app/upload'));
+    final request = http.MultipartRequest(
+        'POST', Uri.parse('https://possystembackend.vercel.app/upload'));
     request.files.add(await http.MultipartFile.fromPath('image', image.path));
     final response = await request.send();
 
@@ -65,9 +63,7 @@ class _CreateProductPageState extends State<CreateProductPage> {
 
     final product = {
       'name': _nameController.text,
-      'price1': _price1Controller.text,
-      'price2': _price2Controller.text,
-      'price3': _price3Controller.text,
+      'price': _priceController.text,
       'description': _descriptionController.text,
       'imageId': widget.product?['imageId'] ?? imageId ?? '',
     };
@@ -79,7 +75,8 @@ class _CreateProductPageState extends State<CreateProductPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Product', style: TextStyle(color: Colors.white)),
+        title:
+            const Text('Create Product', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -121,59 +118,9 @@ class _CreateProductPageState extends State<CreateProductPage> {
                   ),
                   const SizedBox(height: 20),
                   TextFormField(
-                    controller: _price1Controller,
+                    controller: _priceController,
                     decoration: const InputDecoration(
-                      labelText: 'Price 1',
-                      labelStyle: TextStyle(color: Colors.white),
-                      enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: Colors.white),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a price';
-                      }
-                      if (double.tryParse(value) == null) {
-                        return 'Please enter a valid number';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _price2Controller,
-                    decoration: const InputDecoration(
-                      labelText: 'Price 2',
-                      labelStyle: TextStyle(color: Colors.white),
-                      enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: Colors.white),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a price';
-                      }
-                      if (double.tryParse(value) == null) {
-                        return 'Please enter a valid number';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _price3Controller,
-                    decoration: const InputDecoration(
-                      labelText: 'Price 3',
+                      labelText: 'Price',
                       labelStyle: TextStyle(color: Colors.white),
                       enabledBorder: UnderlineInputBorder(
                         borderSide: BorderSide(color: Colors.white),
@@ -232,7 +179,8 @@ class _CreateProductPageState extends State<CreateProductPage> {
                       if (_formKey.currentState!.validate()) {
                         if (_image == null && widget.product == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please pick an image')),
+                            const SnackBar(
+                                content: Text('Please pick an image')),
                           );
                           return;
                         }
