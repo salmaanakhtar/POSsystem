@@ -194,6 +194,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         DataColumn(
                             label: Text('Actions',
                                 style: TextStyle(color: Colors.white))),
+                        DataColumn(
+                            label: Text('Active',
+                                style: TextStyle(color: Colors.white))),
                       ],
                       rows: filteredProducts.map((product) {
                         final index = products.indexOf(product);
@@ -238,6 +241,21 @@ class _MyHomePageState extends State<MyHomePage> {
                               ),
                             ],
                           )),
+                          DataCell(
+                            Switch(
+                              value: product['active'] ?? true,
+                              onChanged: (val) async {
+                                final updatedProduct =
+                                    Map<String, String>.from(product.map((key, value) => MapEntry(key, value.toString())));
+                                updatedProduct['active'] = val.toString();
+                                await DbHelper().updateProduct(
+                                    product['_id'].toString(), updatedProduct);
+                                _loadProducts();
+                              },
+                              activeColor: Colors.green,
+                              inactiveThumbColor: Colors.red,
+                            ),
+                          ),
                         ]);
                       }).toList(),
                     ),

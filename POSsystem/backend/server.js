@@ -15,9 +15,10 @@ mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const productSchema = new mongoose.Schema({
   name: String,
-  price: String, // Changed: single price field
+  price: String,
   description: String,
   imageId: String,
+  active: { type: Boolean, default: true }, // <-- Add this line
 });
 
 const Product = mongoose.model('Product', productSchema);

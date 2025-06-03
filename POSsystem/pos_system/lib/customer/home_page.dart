@@ -32,6 +32,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
 
   Future<void> _loadProducts() async {
     var data = await DbHelper().getProducts();
+    // Only include active products
+    data = data.where((product) => product['active'] != false).toList();
     for (var product in data) {
       _loadImage(product['imageId']);
     }
@@ -168,7 +170,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                           itemCount: filteredProducts.length,
                           itemBuilder: (context, index) {
                             final product = filteredProducts[index];
-                            selectedPrices[index] ??= product['price1'];
+
                             return Card(
                               color: Colors.white.withOpacity(0.1),
                               shape: RoundedRectangleBorder(
