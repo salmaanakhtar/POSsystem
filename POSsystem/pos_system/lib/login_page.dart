@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'customer/customer_info_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -18,7 +19,12 @@ class _LoginPageState extends State<LoginPage> {
     if (username == 'admin' && password == 'admin') {
       Navigator.pushReplacementNamed(context, '/home');
     } else if (username == 'customer' && password == 'customer') {
-      Navigator.pushReplacementNamed(context, '/customer/home');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CustomerInfoPage(),
+        ),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Invalid username or password')),

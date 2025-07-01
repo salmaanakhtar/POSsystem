@@ -22,7 +22,12 @@ class MyApp extends StatelessWidget {
       home: const LoginPage(),
       routes: {
         '/home': (context) => const MyHomePage(title: 'Home'), // Define the /home route
-        '/customer/home': (context) => const CustomerHomePage(title: 'Customer Home'), // Add this line
+        '/customer/home': (context) => const CustomerHomePage(
+          title: 'Customer Home',
+          location: 'Default Location',
+          customerName: 'Default Customer',
+          customerId: 'default_id',
+        ), // Add this line
       },
     );
   }

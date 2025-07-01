@@ -16,6 +16,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Map<String, dynamic>> products = [];
   List<Map<String, dynamic>> filteredProducts = [];
   final TextEditingController _searchController = TextEditingController();
+  String _selectedFilterCategory = 'all'; // Add to _MyHomePageState
 
   @override
   void initState() {
@@ -26,6 +27,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _loadProducts() async {
     var data = await DbHelper().getProducts();
+    // Sort alphabetically by name (case-insensitive)
+    data.sort((a, b) => a['name']
+        .toString()
+        .toLowerCase()
+        .compareTo(b['name'].toString().toLowerCase()));
     setState(() {
       products = data;
       filteredProducts = data;
@@ -37,7 +43,10 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       filteredProducts = products.where((product) {
         final name = product['name'].toLowerCase();
-        return name.contains(query);
+        final matchesSearch = name.contains(query);
+        final matchesCategory = _selectedFilterCategory == 'all' ||
+            (product['category'] ?? 'drinks') == _selectedFilterCategory;
+        return matchesSearch && matchesCategory;
       }).toList();
     });
   }
@@ -132,25 +141,55 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: const InputDecoration(
-                    labelText: 'Search',
-                    labelStyle: TextStyle(color: Colors.white),
-                    prefixIcon: Icon(Icons.search, color: Colors.white),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(30.0)),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: const InputDecoration(
+                          labelText: 'Search',
+                          labelStyle: TextStyle(color: Colors.white),
+                          prefixIcon: Icon(Icons.search, color: Colors.white),
+                          border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(30.0)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(30.0)),
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(30.0)),
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                        ),
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(30.0)),
-                      borderSide: BorderSide(color: Colors.white),
+                    const SizedBox(width: 16),
+                    DropdownButton<String>(
+                      value: _selectedFilterCategory,
+                      dropdownColor: Colors.black,
+                      style: const TextStyle(color: Colors.white),
+                      items: const [
+                        DropdownMenuItem(value: 'all', child: Text('All')),
+                        DropdownMenuItem(
+                            value: 'drinks', child: Text('Drinks')),
+                        DropdownMenuItem(
+                            value: 'sweets', child: Text('Sweets')),
+                        DropdownMenuItem(
+                            value: 'chocolates', child: Text('Chocolates')),
+                      ],
+                      onChanged: (val) {
+                        setState(() {
+                          _selectedFilterCategory = val!;
+                          _filterProducts();
+                        });
+                      },
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(30.0)),
-                      borderSide: BorderSide(color: Colors.white),
-                    ),
-                  ),
-                  style: const TextStyle(color: Colors.white),
+                  ],
                 ),
               ),
               Padding(
@@ -189,6 +228,13 @@ class _MyHomePageState extends State<MyHomePage> {
                             label: Text('Price',
                                 style: TextStyle(color: Colors.white))),
                         DataColumn(
+                            label: Text('Price 2',
+                                style: TextStyle(color: Colors.white))),
+                        DataColumn(
+                            label: Text('Category',
+                                style: TextStyle(
+                                    color: Colors.white))), // <-- Add this
+                        DataColumn(
                             label: Text('Description',
                                 style: TextStyle(color: Colors.white))),
                         DataColumn(
@@ -202,11 +248,16 @@ class _MyHomePageState extends State<MyHomePage> {
                         final index = products.indexOf(product);
                         return DataRow(cells: [
                           DataCell(Text(product['name'],
-                              style: const TextStyle(color: Colors.white))),
-                          DataCell(Text(product['price'],
-                              style: const TextStyle(color: Colors.white))),
+                              style: TextStyle(color: Colors.white))),
+                          DataCell(Text('R ${product['price']}',
+                              style: TextStyle(color: Colors.white))),
+                          DataCell(Text('R ${product['price2'] ?? ''}',
+                              style: TextStyle(color: Colors.white))),
+                          DataCell(Text(product['category'] ?? '',
+                              style: TextStyle(
+                                  color: Colors.white))), // <-- Add this
                           DataCell(Text(product['description'],
-                              style: const TextStyle(color: Colors.white))),
+                              style: TextStyle(color: Colors.white))),
                           DataCell(Row(
                             children: [
                               IconButton(
@@ -220,6 +271,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                         product: {
                                           'name': product['name'],
                                           'price': product['price'],
+                                          'price2': product['price2'] ?? '',
                                           'description': product['description'],
                                           'imageId': product['imageId'],
                                         },
@@ -245,8 +297,9 @@ class _MyHomePageState extends State<MyHomePage> {
                             Switch(
                               value: product['active'] ?? true,
                               onChanged: (val) async {
-                                final updatedProduct =
-                                    Map<String, String>.from(product.map((key, value) => MapEntry(key, value.toString())));
+                                final updatedProduct = Map<String, String>.from(
+                                    product.map((key, value) =>
+                                        MapEntry(key, value.toString())));
                                 updatedProduct['active'] = val.toString();
                                 await DbHelper().updateProduct(
                                     product['_id'].toString(), updatedProduct);

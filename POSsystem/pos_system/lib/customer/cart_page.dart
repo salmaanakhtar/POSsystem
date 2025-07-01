@@ -3,8 +3,14 @@ import 'sales_order_page.dart';
 
 class CartPage extends StatefulWidget {
   final List<Map<String, dynamic>> cartItems;
+  final String customerName;
+  final String customerId; // <-- Add this
 
-  CartPage({required this.cartItems});
+  CartPage({
+    required this.cartItems,
+    required this.customerName,
+    required this.customerId, // <-- Add this
+  });
 
   @override
   _CartPageState createState() => _CartPageState();
@@ -27,6 +33,36 @@ class _CartPageState extends State<CartPage> {
     setState(() {
       widget.cartItems.removeAt(index);
     });
+  }
+
+  int extractTotalUnits(String description) {
+    // Find all numbers in the description
+    final regex = RegExp(r'(\d+)');
+    final matches = regex.allMatches(description).toList();
+
+    if (matches.isNotEmpty) {
+      // Use the last number as the unit count
+      return int.tryParse(matches.last.group(1)!) ?? 1;
+    }
+    return 1;
+  }
+
+  String getUnitPrice(Map<String, dynamic> product, String location) {
+    final description = product['description'] ?? '';
+    final totalUnits = extractTotalUnits(description);
+
+    final price = location == 'Johannesburg'
+        ? (product['price2'] != null && product['price2'].toString().isNotEmpty
+            ? double.tryParse(product['price2'].toString()) ?? 0
+            : double.tryParse(product['price'].toString()) ?? 0)
+        : double.tryParse(product['price'].toString()) ?? 0;
+
+    if (totalUnits > 0 && price > 0) {
+      final unitPrice = price / totalUnits;
+      return 'R ${unitPrice.toStringAsFixed(2)}';
+    } else {
+      return 'N/A';
+    }
   }
 
   @override
@@ -77,35 +113,17 @@ class _CartPageState extends State<CartPage> {
                                         fontWeight: FontWeight.bold),
                                   ),
                                   const SizedBox(height: 5),
-                                  TextField(
-                                    decoration: const InputDecoration(
-                                      labelText: 'Price',
-                                      labelStyle:
-                                          TextStyle(color: Colors.white),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide:
-                                            BorderSide(color: Colors.white),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide:
-                                            BorderSide(color: Colors.white),
-                                      ),
-                                    ),
-                                    style: const TextStyle(color: Colors.white),
-                                    keyboardType: TextInputType.number,
-                                    onChanged: (value) {
-                                      double? newPrice = double.tryParse(value);
-                                      if (newPrice != null) {
-                                        setState(() {
-                                          widget.cartItems[index]['price'] =
-                                              value;
-                                        });
-                                      }
-                                    },
-                                    controller: TextEditingController(
-                                      text: widget.cartItems[index]['price']
-                                              ?.toString() ??
-                                          '0',
+                                  Text(
+                                    'Price: R ${item['price']}',
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 16),
+                                  ),
+                                  const SizedBox(height: 5),
+                                  Text(
+                                    'Unit Price: ${getUnitPrice(item, item['location'] ?? "")}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
                                     ),
                                   ),
                                   const SizedBox(height: 5),
@@ -172,8 +190,11 @@ class _CartPageState extends State<CartPage> {
                   final cleared = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          SalesOrderPage(cartItems: widget.cartItems),
+                      builder: (context) => SalesOrderPage(
+                        cartItems: widget.cartItems,
+                        customerName: widget.customerName, // Pass this down
+                        customerId: widget.customerId, // Pass this down
+                      ),
                     ),
                   );
                   // If PDF was saved, clear the cart

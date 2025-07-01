@@ -2,19 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../db_helper.dart';
 
 class SalesOrderPage extends StatefulWidget {
   final List<Map<String, dynamic>> cartItems;
+  final String customerName;
+  final String customerId; // <-- Add this
 
-  const SalesOrderPage({super.key, required this.cartItems});
+  const SalesOrderPage({
+    super.key,
+    required this.cartItems,
+    required this.customerName,
+    required this.customerId, // <-- Add this
+  });
 
   @override
   State<SalesOrderPage> createState() => _SalesOrderPageState();
 }
 
 class _SalesOrderPageState extends State<SalesOrderPage> {
-  final TextEditingController customerController = TextEditingController();
+  late final TextEditingController customerController;
   String paymentType = 'Cash on delivery';
+
+  @override
+  void initState() {
+    super.initState();
+    customerController = TextEditingController(text: widget.customerName);
+  }
 
   double get orderTotal {
     double total = 0;
@@ -59,8 +73,8 @@ class _SalesOrderPageState extends State<SalesOrderPage> {
                 return [
                   item['name'] ?? '',
                   qty.toString(),
-                  price.toStringAsFixed(2),
-                  total.toStringAsFixed(2),
+                  'R ${price.toStringAsFixed(2)}',
+                  'R ${total.toStringAsFixed(2)}',
                 ];
               }).toList(),
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
@@ -70,7 +84,7 @@ class _SalesOrderPageState extends State<SalesOrderPage> {
             pw.Align(
               alignment: pw.Alignment.centerRight,
               child: pw.Text(
-                'Order Total: ${orderTotal.toStringAsFixed(2)}',
+                'Order Total: R ${orderTotal.toStringAsFixed(2)}',
                 style:
                     pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
               ),
@@ -86,8 +100,47 @@ class _SalesOrderPageState extends State<SalesOrderPage> {
       filename: 'sales_order_${dateStr}.pdf',
     );
 
+    // Save sales order to database
+    await DbHelper().saveSalesOrder(
+      customerId: widget.customerId,
+      customerName: widget.customerName,
+      items: widget.cartItems,
+      paymentType: paymentType,
+      total: orderTotal.toStringAsFixed(2),
+    );
+
     // Pop and signal to clear the cart
     if (mounted) Navigator.pop(context, true);
+  }
+
+  int extractTotalUnits(String description) {
+    // Find all numbers in the description
+    final regex = RegExp(r'(\d+)');
+    final matches = regex.allMatches(description).toList();
+
+    if (matches.isNotEmpty) {
+      // Use the last number as the unit count
+      return int.tryParse(matches.last.group(1)!) ?? 1;
+    }
+    return 1;
+  }
+
+  String getUnitPrice(Map<String, dynamic> product, String location) {
+    final description = product['description'] ?? '';
+    final totalUnits = extractTotalUnits(description);
+
+    final price = location == 'Johannesburg'
+        ? (product['price2'] != null && product['price2'].toString().isNotEmpty
+            ? double.tryParse(product['price2'].toString()) ?? 0
+            : double.tryParse(product['price'].toString()) ?? 0)
+        : double.tryParse(product['price'].toString()) ?? 0;
+
+    if (totalUnits > 0 && price > 0) {
+      final unitPrice = price / totalUnits;
+      return 'R ${unitPrice.toStringAsFixed(2)}';
+    } else {
+      return 'N/A';
+    }
   }
 
   @override
@@ -178,23 +231,20 @@ class _SalesOrderPageState extends State<SalesOrderPage> {
                             const TextStyle(color: Colors.white, fontSize: 16),
                         items: const [
                           DropdownMenuItem(
-                            value: 'Cash on delivery',
-                            child: Text('Cash on delivery',
+                            value: 'COD',
+                            child: Text('COD (Cash On Delivery)',
                                 style: TextStyle(color: Colors.white)),
                           ),
                           DropdownMenuItem(
-                            value: 'EFT',
-                            child: Text('EFT',
-                                style: TextStyle(color: Colors.white)),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Shop to shop',
-                            child: Text('Shop to shop',
+                            value: 'Account',
+                            child: Text('Account',
                                 style: TextStyle(color: Colors.white)),
                           ),
                         ],
                         onChanged: (value) {
-                          // Payment type change logic if needed
+                          setState(() {
+                            paymentType = value!;
+                          });
                         },
                       ),
                     ],
@@ -213,8 +263,16 @@ class _SalesOrderPageState extends State<SalesOrderPage> {
                               label: Text('Product',
                                   style: TextStyle(color: Colors.white))),
                           DataColumn(
+                              label: Text('Description',
+                                  style:
+                                      TextStyle(color: Colors.white))), // NEW
+                          DataColumn(
                               label: Text('Qty',
                                   style: TextStyle(color: Colors.white))),
+                          DataColumn(
+                              label: Text('Price',
+                                  style:
+                                      TextStyle(color: Colors.white))), // NEW
                           DataColumn(
                               label: Text('Unit Price',
                                   style: TextStyle(color: Colors.white))),
@@ -227,19 +285,40 @@ class _SalesOrderPageState extends State<SalesOrderPage> {
                               double.tryParse(item['price'].toString()) ?? 0;
                           final qty = item['quantity'] ?? 0;
                           final total = price * qty;
+                          final description = item['description'] ?? '';
+                          final location = item['location'] ?? '';
                           return DataRow(
                             cells: [
                               DataCell(Text(item['name'] ?? '',
                                   style: const TextStyle(color: Colors.white))),
+                              DataCell(Text(description,
+                                  style: const TextStyle(
+                                      color: Colors.white))), // NEW
                               DataCell(Text(qty.toString(),
                                   style: const TextStyle(color: Colors.white))),
-                              DataCell(Text(price.toStringAsFixed(2),
+                              DataCell(Text('R ${price.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                      color: Colors.white))), // NEW
+                              DataCell(Text(
+                                  getUnitPrice(item, item['location'] ?? ""),
                                   style: const TextStyle(color: Colors.white))),
-                              DataCell(Text(total.toStringAsFixed(2),
+                              DataCell(Text('R ${total.toStringAsFixed(2)}',
                                   style: const TextStyle(color: Colors.white))),
                             ],
                           );
                         }).toList(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      'Order Total: R ${orderTotal.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),

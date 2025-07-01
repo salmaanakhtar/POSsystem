@@ -6,9 +6,18 @@ import '../db_helper.dart';
 import '../login_page.dart'; // Make sure this import is correct
 
 class CustomerHomePage extends StatefulWidget {
-  const CustomerHomePage({super.key, required this.title});
-
   final String title;
+  final String location;
+  final String customerName;
+  final String customerId; // <-- Add this
+
+  const CustomerHomePage({
+    super.key,
+    required this.title,
+    required this.location,
+    required this.customerName,
+    required this.customerId, // <-- Add this
+  });
 
   @override
   _CustomerHomePageState createState() => _CustomerHomePageState();
@@ -74,11 +83,20 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
   void _addToCart(int index) {
     if (quantities[index] != null && quantities[index]! > 0) {
       final product = filteredProducts[index];
+      final price = widget.location == 'Johannesburg'
+          ? (product['price2'] != null &&
+                  product['price2'].toString().isNotEmpty
+              ? product['price2']
+              : product['price'])
+          : product['price'];
       final cartItem = {
         'productId': product['_id'],
         'name': product['name'],
         'quantity': quantities[index]!,
-        'price': product['price'] ?? '0', // fallback to '0' if null
+        'price': price ?? '0',
+        'description': product['description'], // <-- Add this
+        'price2': product['price2'], // <-- Add this
+        'location': widget.location, // <-- Add this
       };
       setState(() {
         cartItems.add(cartItem);
@@ -100,6 +118,36 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
   void dispose() {
     searchController.dispose();
     super.dispose();
+  }
+
+  int extractTotalUnits(String description) {
+    // Find all numbers in the description
+    final regex = RegExp(r'(\d+)');
+    final matches = regex.allMatches(description).toList();
+
+    if (matches.isNotEmpty) {
+      // Use the last number as the unit count
+      return int.tryParse(matches.last.group(1)!) ?? 1;
+    }
+    return 1;
+  }
+
+  String getUnitPrice(Map<String, dynamic> product, String location) {
+    final description = product['description'] ?? '';
+    final totalUnits = extractTotalUnits(description);
+
+    final price = location == 'Johannesburg'
+        ? (product['price2'] != null && product['price2'].toString().isNotEmpty
+            ? double.tryParse(product['price2'].toString()) ?? 0
+            : double.tryParse(product['price'].toString()) ?? 0)
+        : double.tryParse(product['price'].toString()) ?? 0;
+
+    if (totalUnits > 0 && price > 0) {
+      final unitPrice = price / totalUnits;
+      return 'R ${unitPrice.toStringAsFixed(2)}';
+    } else {
+      return 'N/A';
+    }
   }
 
   @override
@@ -125,7 +173,12 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => CartPage(cartItems: cartItems)),
+                  builder: (context) => CartPage(
+                    cartItems: cartItems,
+                    customerName: widget.customerName,
+                    customerId: widget.customerId, // <-- Add this
+                  ),
+                ),
               );
             },
           ),
@@ -232,6 +285,15 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                                 color: Colors.white,
                                                 fontSize: 20),
                                           ),
+                                          const SizedBox(height: 5),
+                                          Text(
+                                            'Unit Price: ${getUnitPrice(product, widget.location)}',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -241,7 +303,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                           CrossAxisAlignment.end,
                                       children: <Widget>[
                                         Text(
-                                          'Price: ${product['price'] ?? 'N/A'}',
+                                          'Price: R ${widget.location == 'Johannesburg' ? (product['price2'] != null && product['price2'].toString().isNotEmpty ? product['price2'] : product['price']) : product['price'] ?? 'N/A'}',
                                           style: const TextStyle(
                                               color: Colors.white,
                                               fontSize: 18,
@@ -272,6 +334,9 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                                 quantities[index] =
                                                     int.tryParse(value) ?? 0;
                                               });
+                                            },
+                                            onEditingComplete: () {
+                                              _addToCart(index);
                                             },
                                           ),
                                         ),
